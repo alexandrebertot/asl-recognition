@@ -1,0 +1,8 @@
+mediapipe>=1.0.1
+opencv-python>=4.10
+numpy>=2.0
+pandas>=2.2
+scikit-learn>=1.5
+joblib>=1.4
+matplotlib>=3.9
+tqdm>=4.66
