@@ -21,7 +21,7 @@ interactive frame rates, on CPU.
   image / webcam ──> │    MediaPipe     │ ──> │ normalised │ ──> classifier ──> letter
       frame          │ Hand Landmarker  │     │  features  │
                      └──────────────────┘     └────────────┘
-                       21 × (x, y, z)            63 values
+                       21 × (x, y, z)            60 values
                           (frozen)                (shared)
 ```
 
@@ -30,7 +30,7 @@ landmarks, and only the final classifier is trained.
 
 | | CNN on raw pixels | MediaPipe landmarks |
 | --- | --- | --- |
-| Model input | 200×200×3 = 120,000 values | **63 values** |
+| Model input | 200×200×3 = 120,000 values | **60 values** |
 | What the model sees | hand **+ background + lighting + skin tone** | hand geometry only |
 | Hardware | GPU, hours | **CPU, minutes** |
 
