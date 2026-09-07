@@ -221,3 +221,9 @@ __marimo__/
 data/
 models/*.task
 models/*.joblib
+
+# Kaggle API token; it belongs in ~/.kaggle/, never in a repository
+kaggle.json
+
+# Local working notes, not part of the project's documentation
+NOTES.md
