@@ -30,7 +30,17 @@ CLASSES = [chr(c) for c in range(ord("A"), ord("Z") + 1)] + ["del", "nothing", "
 
 IMAGE_SUFFIXES = frozenset({".jpg", ".jpeg", ".png", ".bmp"})
 
-META_COLUMNS = ["path", "label", "detected", "handedness", "hand_score"]
+# width and height are kept per image so the aspect ratio can be corrected row by
+# row, which matters as soon as a second dataset brings non-square images.
+META_COLUMNS = [
+    "path",
+    "label",
+    "width",
+    "height",
+    "detected",
+    "handedness",
+    "hand_score",
+]
 # Interleaved as x0,y0,z0,x1,... so a row slice reshapes straight to (21, 3).
 LANDMARK_COLUMNS = [
     f"{axis}{i}" for i in range(NUM_LANDMARKS) for axis in ("x", "y", "z")
