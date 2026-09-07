@@ -1,8 +1,7 @@
 """MediaPipe Hand Landmarker wrapper.
 
-The only module that talks to MediaPipe: everything downstream works on plain
-NumPy arrays, so an API change stays contained here -- as already happened when
-1.0 dropped the legacy `mp.solutions.hands`.
+The only module that talks to MediaPipe, so an API change stays contained here
+-- as already happened when 1.0 dropped the legacy `mp.solutions.hands`.
 """
 
 from __future__ import annotations
@@ -43,9 +42,8 @@ def ensure_model(
         return path
 
     path.parent.mkdir(parents=True, exist_ok=True)
-    # Renaming a finished file is atomic; downloading straight to `path` would let
-    # an interrupted transfer leave a truncated bundle, which MediaPipe loads
-    # before failing much later somewhere unrelated.
+    # Rename once complete: an interrupted download must not leave a truncated
+    # bundle, which MediaPipe loads before failing much later.
     partial = path.with_suffix(path.suffix + ".part")
     with urllib.request.urlopen(url) as response, partial.open("wb") as f:
         shutil.copyfileobj(response, f)
@@ -56,17 +54,10 @@ def ensure_model(
 class HandLandmarkExtractor:
     """Detects one hand per frame and returns its landmarks.
 
-    Building the landmarker loads ~8 MB of weights and starts a native graph, so
-    an instance is meant to be reused across frames rather than rebuilt per call.
-
-    Args:
-        video_mode: use MediaPipe's VIDEO mode, which tracks the hand between
-            frames instead of re-running the palm detector on each one. Faster
-            and steadier on a webcam, wrong for a folder of unrelated images.
-        num_hands: fingerspelling is one-handed, so a single hand removes the
-            "which one do I classify?" ambiguity.
-        min_detection_confidence: below this score, the frame is reported as
-            having no hand rather than yielding an unreliable pose.
+    Building the landmarker loads ~8 MB of weights, so an instance is meant to be
+    reused across frames. `video_mode` selects MediaPipe's VIDEO mode, which
+    tracks the hand between frames: right for a webcam, wrong for a folder of
+    unrelated images.
     """
 
     def __init__(
@@ -80,7 +71,7 @@ class HandLandmarkExtractor:
         options = _HandLandmarkerOptions(
             base_options=_BaseOptions(model_asset_path=str(ensure_model())),
             running_mode=_RunningMode.VIDEO if video_mode else _RunningMode.IMAGE,
-            num_hands=num_hands,
+            num_hands=num_hands,  # fingerspelling is one-handed
             min_hand_detection_confidence=min_detection_confidence,
         )
         self._landmarker = _HandLandmarker.create_from_options(options)
@@ -90,14 +81,9 @@ class HandLandmarkExtractor:
     ) -> HandDetection | None:
         """Detect a hand in a BGR image, or return None if there is none.
 
-        A missing hand is an ordinary outcome -- blurred frames, hands out of
-        shot -- so it comes back as None rather than an exception, which keeps
-        the 87k-image extraction loop free of a try/except.
-
-        Args:
-            bgr_image: frame in OpenCV's native BGR order.
-            timestamp_ms: required in video mode, where MediaPipe uses it to
-                order its tracking state.
+        A missing hand is an ordinary outcome rather than an error, which keeps
+        the 87k-image extraction loop free of a try/except. `timestamp_ms` is
+        required in video mode, where MediaPipe uses it to order its tracking.
         """
         if self.video_mode and timestamp_ms is None:
             raise ValueError("timestamp_ms is required in video mode")
