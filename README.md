@@ -82,7 +82,7 @@ MediaPipe weights are downloaded automatically on first run.
 ## Usage
 
 ```bash
-python -m src.build_dataset --input-dir data/raw/asl_alphabet_train
+python -m src.build_dataset --input-dir data/raw/asl_alphabet_train/asl_alphabet_train
 python -m src.train --model mlp
 python -m src.demo_webcam
 ```
