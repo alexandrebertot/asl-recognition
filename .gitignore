@@ -225,5 +225,6 @@ models/*.joblib
 # Kaggle API token; it belongs in ~/.kaggle/, never in a repository
 kaggle.json
 
-# Local working notes, not part of the project's documentation
+# Local working notes and scratch analysis
 NOTES.md
+notebooks/
