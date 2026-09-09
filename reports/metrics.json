@@ -1,0 +1,66 @@
+{
+  "selection": [
+    {
+      "features": "image",
+      "split": "signer",
+      "n_train": 14400,
+      "validation": {
+        "accuracy": 0.8803347280334728,
+        "macro_f1": 0.8814143717302069,
+        "latency_ms": 0.21
+      },
+      "test": {
+        "accuracy": 0.8497916666666666,
+        "macro_f1": 0.8562327280866245,
+        "latency_ms": 0.2
+      }
+    },
+    {
+      "features": "world",
+      "split": "signer",
+      "n_train": 14400,
+      "validation": {
+        "accuracy": 0.8723849372384938,
+        "macro_f1": 0.8752443392185203,
+        "latency_ms": 0.23
+      },
+      "test": {
+        "accuracy": 0.8220833333333334,
+        "macro_f1": 0.8163563843956146,
+        "latency_ms": 0.24
+      }
+    }
+  ],
+  "splits": [
+    {
+      "features": "image",
+      "split": "signer",
+      "n_train": 14400,
+      "validation": {
+        "accuracy": 0.8803347280334728,
+        "macro_f1": 0.8814143717302069,
+        "latency_ms": 0.21
+      },
+      "test": {
+        "accuracy": 0.8497916666666666,
+        "macro_f1": 0.8562327280866245,
+        "latency_ms": 0.2
+      }
+    },
+    {
+      "features": "image",
+      "split": "random",
+      "n_train": 14388,
+      "validation": {
+        "accuracy": 0.9995829858215179,
+        "macro_f1": 0.9995785109874885,
+        "latency_ms": 0.2
+      },
+      "test": {
+        "accuracy": 0.999791492910759,
+        "macro_f1": 0.9997916653645752,
+        "latency_ms": 0.21
+      }
+    }
+  ]
+}
