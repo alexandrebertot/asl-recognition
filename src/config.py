@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from string import ascii_uppercase
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
@@ -10,9 +11,12 @@ DATA_DIR = PROJECT_ROOT / "data"
 RAW_DIR = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "processed"
 MODELS_DIR = PROJECT_ROOT / "models"
+REPORTS_DIR = PROJECT_ROOT / "reports"
 
 LANDMARKS_CSV = PROCESSED_DIR / "landmarks.csv"
 CLASSIFIER_PATH = MODELS_DIR / "classifier.joblib"
+METRICS_PATH = REPORTS_DIR / "metrics.json"
+CONFUSION_MATRIX_PATH = REPORTS_DIR / "confusion_matrix.png"
 
 # MediaPipe >= 1.0 removed the legacy `mp.solutions.hands` API; the Tasks API
 # used instead loads its weights from an external .task bundle.
@@ -26,7 +30,8 @@ NUM_LANDMARKS = 21
 WRIST = 0
 MIDDLE_FINGER_MCP = 9
 
-CLASSES = [chr(c) for c in range(ord("A"), ord("Z") + 1)] + ["del", "nothing", "space"]
+# J and Z are traced in the air, so no single frame can hold them.
+STATIC_LETTERS = [c for c in ascii_uppercase if c not in ("J", "Z")]
 
 IMAGE_SUFFIXES = frozenset({".jpg", ".jpeg", ".png", ".bmp"})
 
