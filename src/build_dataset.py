@@ -30,8 +30,7 @@ def iter_images(
 ) -> Iterator[tuple[Path, str]]:
     """Yield (image path, label) pairs from a directory holding one folder per class.
 
-    Sorted at both levels so that two runs produce identical CSVs; a dataset whose
-    row order shifts would make model comparisons meaningless.
+    Sorted at both levels so that two runs produce identical CSVs.
     """
     for class_dir in sorted(p for p in input_dir.iterdir() if p.is_dir()):
         images = sorted(
@@ -45,12 +44,8 @@ def build_row(
 ) -> dict[str, object]:
     """Build one CSV row, landmark columns left empty when no hand was found.
 
-    Undetected images are kept rather than dropped: they are what makes the
-    detection rate measurable, per class as well as overall. Training filters them
-    out when it loads the CSV.
-
-    Args:
-        root: paths are stored relative to it, keeping the CSV portable.
+    Undetected images are kept, since they are what makes the detection rate
+    measurable; training filters them out. Paths are stored relative to `root`.
     """
     row: dict[str, object] = {
         "path": path.relative_to(root).as_posix(),

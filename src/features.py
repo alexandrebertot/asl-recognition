@@ -21,7 +21,6 @@ from .config import (
 
 FeatureMode = Literal["image", "world"]
 
-FEATURE_DIM = (NUM_LANDMARKS - 1) * 3
 _MIN_SCALE = 1e-8
 
 

@@ -94,7 +94,13 @@ def split_at_random(df: pd.DataFrame, seed: int) -> dict[str, np.ndarray]:
 SPLITS = {"signer": split_by_signer, "random": split_at_random}
 
 
-def fit_mlp(X_train, y_train, X_val, y_val, seed: int) -> Pipeline:
+def fit_mlp(
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    X_val: np.ndarray,
+    y_val: np.ndarray,
+    seed: int,
+) -> Pipeline:
     """Fit an MLP, early-stopping on the held-out validation set."""
     scaler = StandardScaler().fit(X_train)
     train_scaled, val_scaled = scaler.transform(X_train), scaler.transform(X_val)
@@ -198,12 +204,17 @@ def save_confusion_matrix(y_true, y_pred, path: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, default=LANDMARKS_CSV)
-    parser.add_argument("--features", choices=FEATURE_MODES, help="restrict to one mode")
+    parser.add_argument(
+        "--features", choices=FEATURE_MODES, help="restrict to one mode"
+    )
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
 
     df = load_dataset(args.input)
-    print(f"{len(df)} rows, {df['label'].nunique()} classes, {df['signer'].nunique()} signers")
+    print(
+        f"{len(df)} rows, {df['label'].nunique()} classes, "
+        f"{df['signer'].nunique()} signers"
+    )
 
     ratios = np.unique(df["width"] / df["height"])
     if len(ratios) > 1:
@@ -216,7 +227,8 @@ def main() -> None:
         result, model, y_true, y_pred = run(df, X, mode, "signer", args.seed)
         selection.append(result)
         # Chosen on validation; test stays untouched until the winner is known.
-        if best is None or result["validation"]["macro_f1"] > best[0]["validation"]["macro_f1"]:
+        score = result["validation"]["macro_f1"]
+        if best is None or score > best[0]["validation"]["macro_f1"]:
             best = (result, model, y_true, y_pred, X)
 
     print_table("landmark representation (unseen signers)", selection)
@@ -232,10 +244,15 @@ def main() -> None:
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, CLASSIFIER_PATH)
     METRICS_PATH.write_text(
-        json.dumps({"selection": selection, "splits": [result, random_result]}, indent=2)
+        json.dumps(
+            {"selection": selection, "splits": [result, random_result]}, indent=2
+        )
     )
     save_confusion_matrix(y_true, y_pred, CONFUSION_MATRIX_PATH)
-    print(f"\nsaved {CLASSIFIER_PATH.name}, {METRICS_PATH.name}, {CONFUSION_MATRIX_PATH.name}")
+    print(
+        f"\nsaved {CLASSIFIER_PATH.name}, {METRICS_PATH.name}, "
+        f"{CONFUSION_MATRIX_PATH.name}"
+    )
 
 
 if __name__ == "__main__":
