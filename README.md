@@ -3,7 +3,7 @@
 Real-time recognition of the American Sign Language alphabet from a webcam,
 using MediaPipe hand landmarks and a small classifier.
 
-<!-- demo.gif -->
+![Live webcam demo recognising ASL letters](https://github.com/user-attachments/assets/c2505a1d-a42a-4af3-8a91-7339c2a942e4)
 
 ## What it does
 
