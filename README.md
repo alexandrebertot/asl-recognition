@@ -1,71 +1,80 @@
 # ASL Alphabet Recognition
 
-Real-time American Sign Language alphabet recognition from a webcam. MediaPipe hand
-landmarks feed a lightweight classifier, running on CPU.
-
-> 🚧 Work in progress — sections marked 🚧 will be filled with measured numbers.
+Real-time recognition of the American Sign Language alphabet from a webcam,
+using MediaPipe hand landmarks and a small classifier.
 
 <!-- demo.gif -->
 
-## Problem
+## What it does
 
-Fingerspelling is how ASL signers spell names and words that have no dedicated sign,
-which makes it the entry point to any sign language interface. This project classifies
-the 26 static letters (plus `space`, `del` and `nothing`) from a single frame, at
-interactive frame rates, on CPU.
+Classifies a single webcam frame into one of the **24 static ASL letters**. `J`
+and `Z` are excluded: both are traced in the air, so no single frame holds them.
 
-## Approach
+## How it works
 
 ```
                      ┌──────────────────┐     ┌────────────┐
-  image / webcam ──> │    MediaPipe     │ ──> │ normalised │ ──> classifier ──> letter
+  image / webcam ──> │    MediaPipe     │ ──> │ normalised │ ──> MLP ──> letter
       frame          │ Hand Landmarker  │     │  features  │
                      └──────────────────┘     └────────────┘
                        21 × (x, y, z)            60 values
                           (frozen)                (shared)
 ```
 
-MediaPipe is used as a **frozen feature extractor**: each frame is reduced to 21 hand
-landmarks, and only the final classifier is trained.
+MediaPipe is used as a frozen feature extractor. Each hand becomes 21 landmarks,
+turned into a 60-value vector by re-centring on the wrist, dividing by the
+wrist → middle-finger-MCP distance, and correcting for the frame's aspect ratio.
+Only the classifier is trained: an MLP of (256, 128) units on ~14k samples.
 
-| | CNN on raw pixels | MediaPipe landmarks |
-| --- | --- | --- |
-| Model input | 200×200×3 = 120,000 values | **60 values** |
-| What the model sees | hand **+ background + lighting + skin tone** | hand geometry only |
-| Hardware | GPU, hours | **CPU, minutes** |
-
-The middle row is the decisive one. The training images share a single signer and a
-single background, so a pixel-based model would partly learn the *scene* and collapse on
-a different webcam. Landmarks discard everything that is not hand geometry by
-construction — exactly the invariance this task needs.
-
-Landmark extraction over the full dataset takes ~30 minutes, so it is materialised once
-into `landmarks.csv` and training then runs in seconds. Feature normalisation lives in a
-single function shared by the offline and real-time paths, which rules out
-training/serving skew by construction.
-
-## Dataset
-
-[ASL Alphabet](https://www.kaggle.com/datasets/grassknoted/asl-alphabet) (Kaggle) —
-87,000 images of 200×200 pixels across 29 classes.
-
-The images come from a single signer and are near-consecutive video frames, so a random
-train/test split places near-duplicates on both sides and badly overstates accuracy.
-Results below are therefore reported on an independent set of signers.
+That normalisation lives in a single function shared by the offline extraction
+and the live demo, so training and serving features cannot drift apart.
 
 ## Results
 
-🚧 Planned: accuracy and macro F1, per-class scores, confusion matrix, hand detection
-rate, and inference latency.
+MediaPipe finds a hand in **99.9%** of the 36,000 images.
+
+Six signers train, two validate, two test — nobody appears in two splits.
+
+| split | macro F1 | accuracy |
+| --- | --- | --- |
+| **unseen signers** | **0.856** | 0.850 |
+| random | 1.000 | 1.000 |
+
+The random split is reported for comparison only: each signer photographed every
+letter 100 times, so near-duplicate frames land on both sides of it.
+
+The demo runs at 60 fps on CPU, a rate set by the webcam rather than by the
+pipeline: classifying one frame takes 0.2 ms, detection about 16 ms.
+
+![Confusion matrix on unseen signers](reports/confusion_matrix.png)
+
+Errors concentrate on the fist family, where the thumb is the only discriminator
+and the most occluded landmark: `M` (F1 0.39) and `N` (0.46) are the worst, and
+the live demo reads `N` as `T`. The index-and-middle group follows — `U` (0.57),
+`D`, `R` and `V` (0.67).
 
 ## Limitations
 
-- **Static letters only.** `J` and `Z` involve motion and cannot be recognised from a
-  single frame.
-- **MediaPipe is a hard ceiling.** Being frozen, it cannot be fine-tuned, so any pose it
-  mis-estimates is unrecoverable. Letters that tuck the thumb under the fingers (`M`,
-  `N`, `S`, `T`) are occluded and expected to dominate the confusions.
-- **Single-signer training data**, with the generalisation consequences described above.
+- **A single split**, with two held-out signers, so the headline figure comes
+  with no measured spread.
+- **Fist family.** `M`, `N` and `T` differ only by thumb placement, which
+  MediaPipe has to infer when the thumb is hidden behind the fingers.
+- **Ten volunteers in one place.** The landmarks discard skin tone, lighting and
+  background, but not signing style: a quirk shared by everyone who learned the
+  alphabet from the same reference would be invisible in this data.
+- **Static letters only.** `J` and `Z` need a model that reads a sequence of
+  frames rather than one.
+
+## Dataset
+
+[ASL-HG](https://data.mendeley.com/datasets/j4y5w2c8w9/1) — 36,000 images of
+300×300 pixels, 36 classes, 10 signers, CC BY 4.0. This project uses the 24
+static letters: 24,000 images, 23,980 of which yield a hand.
+
+> Pranto, M. F. I., Islam, M. R., Akbor, M. A., Ghosh, N., Alam, M. R.,
+> Chaki, S., & Islam, M. M. (2025). *ASL-HG: American Sign Language Hand
+> Gesture Image Dataset*. Mendeley Data, V1.
+> https://doi.org/10.17632/j4y5w2c8w9.1
 
 ## Installation
 
@@ -77,14 +86,15 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-MediaPipe weights are downloaded automatically on first run.
+MediaPipe weights are downloaded on first run. The dataset is downloaded
+manually from the link above and unzipped into `data/raw/asl_hg/`.
 
 ## Usage
 
 ```bash
-python -m src.build_dataset --input-dir data/raw/asl_alphabet_train/asl_alphabet_train
-python -m src.train --model mlp
-python -m src.demo_webcam
+python -m src.build_dataset --input-dir data/raw/asl_hg   # images -> landmarks.csv
+python -m src.train                                       # -> classifier + reports
+python -m src.demo_webcam                                 # live demo, q to quit
 ```
 
 ## Layout
@@ -99,14 +109,12 @@ src/
 └── demo_webcam.py      real-time webcam demo
 ```
 
-`reports/` is tracked so metrics stay readable without cloning the dataset; `data/` and
-model binaries are not.
+`reports/` is tracked so the metrics stay readable without cloning the dataset;
+`data/` and model binaries are not.
 
 ## Roadmap
 
-- [ ] Landmark extraction pipeline
-- [ ] Training and evaluation, MLP vs histogram gradient boosting
-- [ ] Real-time webcam demo
-- [ ] Cross-dataset evaluation on unseen signers
-- [ ] *Optional:* temporal model for the dynamic letters `J` and `Z`
-- [ ] *Optional:* packaging via `pyproject.toml`, warranted once tests are added
+- [ ] Leave-one-signer-out cross-validation, for a spread over all ten signers
+- [ ] Thumb-centric features — distances from the thumb tip to each fingertip —
+      aimed at the fist family
+- [ ] Temporal model for `J` and `Z`
