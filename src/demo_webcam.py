@@ -22,11 +22,7 @@ WHITE = (255, 255, 255)
 
 
 def stable_letter(recent: deque[str | None]) -> str | None:
-    """Return the letter holding a majority over the recent frames, else None.
-
-    Without it the prediction flickers at frame rate, since the hand passes
-    through shapes that are not letters on its way between them.
-    """
+    """Return the letter holding a majority over the recent frames, else None."""
     votes = Counter(letter for letter in recent if letter is not None)
     if not votes:
         return None
@@ -35,10 +31,7 @@ def stable_letter(recent: deque[str | None]) -> str | None:
 
 
 def draw_hand(frame: np.ndarray, detection: HandDetection) -> None:
-    """Draw the landmark skeleton over the frame.
-
-    Not decoration: it separates a wrong detection from a wrong prediction.
-    """
+    """Draw the landmark skeleton, which tells a bad detection from a bad guess."""
     height, width = frame.shape[:2]
     points = [(int(x * width), int(y * height)) for x, y, _ in detection.landmarks]
     for start, end in HAND_CONNECTIONS:
