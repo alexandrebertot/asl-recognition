@@ -3,7 +3,7 @@
 Real-time recognition of the American Sign Language alphabet from a webcam,
 using MediaPipe hand landmarks and a small classifier.
 
-![Live webcam demo recognising ASL letters](https://github.com/user-attachments/assets/c8785a9f-521c-475e-bd1d-9a8dace6b54d)
+![Live webcam demo recognising ASL letters](https://github.com/user-attachments/assets/477bbe1f-61d5-4afe-8e8e-91aa48509ace)
 
 ## What it does
 
@@ -26,8 +26,9 @@ turned into a 60-value vector by re-centring on the wrist, dividing by the
 wrist → middle-finger-MCP distance, and correcting for the frame's aspect ratio.
 Only the classifier is trained: an MLP of (256, 128) units on ~14k samples.
 
-That normalisation lives in a single function shared by the offline extraction
-and the live demo, so training and serving features cannot drift apart.
+A single function performs those three steps, for the offline extraction and for
+the live demo alike, so the features the model learns on and the features it is
+given at inference cannot drift apart.
 
 ## Results
 
@@ -43,8 +44,8 @@ Six signers train, two validate, two test — nobody appears in two splits.
 The random split is reported for comparison only: each signer photographed every
 letter 100 times, so near-duplicate frames land on both sides of it.
 
-The demo runs at 60 fps on CPU, a rate set by the webcam rather than by the
-pipeline: classifying one frame takes 0.2 ms, detection about 16 ms.
+Classification adds 0.2 ms per frame; MediaPipe's detection dominates at about
+16 ms, so on a laptop CPU the demo runs at the camera's frame rate.
 
 ![Confusion matrix on unseen signers](reports/confusion_matrix.png)
 
@@ -118,6 +119,6 @@ src/
 ## Roadmap
 
 - [ ] Leave-one-signer-out cross-validation, for a spread over all ten signers
-- [ ] Thumb-centric features — distances from the thumb tip to each fingertip —
-      aimed at the fist family
+- [ ] Extra features for the closed-fist letters: the distances from the thumb
+      tip to each fingertip, which is what separates `M`, `N` and `T`
 - [ ] Temporal model for `J` and `Z`
