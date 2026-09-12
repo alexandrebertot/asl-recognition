@@ -3,7 +3,7 @@
 Real-time recognition of the American Sign Language alphabet from a webcam,
 using MediaPipe hand landmarks and a small classifier.
 
-![Live webcam demo recognising ASL letters](https://github.com/user-attachments/assets/c2505a1d-a42a-4af3-8a91-7339c2a942e4)
+![Live webcam demo recognising ASL letters](https://github.com/user-attachments/assets/c8785a9f-521c-475e-bd1d-9a8dace6b54d)
 
 ## What it does
 
@@ -64,6 +64,9 @@ the live demo reads `N` as `T`. The index-and-middle group follows — `U` (0.57
   alphabet from the same reference would be invisible in this data.
 - **Static letters only.** `J` and `Z` need a model that reads a sequence of
   frames rather than one.
+- **The confidence shown by the demo is an uncalibrated softmax score**, not a
+  probability: random landmarks still score close to 1.0. It ranks poses well
+  enough to threshold on, which is all it is used for.
 
 ## Dataset
 
