@@ -90,15 +90,21 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-MediaPipe weights are downloaded on first run. The dataset is downloaded
-manually from the link above and unzipped into `data/raw/asl_hg/`.
+MediaPipe weights are downloaded on first run.
 
 ## Usage
+
+The trained classifier is in the repository, so the demo runs straight away:
+
+```bash
+python -m src.demo_webcam            # q to quit
+```
+
+Reproducing it needs the dataset, unzipped into `data/raw/asl_hg/`:
 
 ```bash
 python -m src.build_dataset --input-dir data/raw/asl_hg   # images -> landmarks.csv
 python -m src.train                                       # -> classifier + reports
-python -m src.demo_webcam                                 # live demo, q to quit
 ```
 
 ## Layout
@@ -113,8 +119,9 @@ src/
 └── demo_webcam.py      real-time webcam demo
 ```
 
-`reports/` is tracked so the metrics stay readable without cloning the dataset;
-`data/` and model binaries are not.
+`reports/` and the trained classifier are tracked, so the results stay readable
+and the demo runs without downloading the dataset; `data/` and the MediaPipe
+weights are not.
 
 ## Roadmap
 
