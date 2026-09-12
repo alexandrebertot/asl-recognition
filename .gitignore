@@ -10,10 +10,9 @@ venv/
 # Jupyter
 .ipynb_checkpoints/
 
-# Dataset and model artifacts
+# Dataset and downloaded weights
 data/
 models/*.task
-models/*.joblib
 
 # Local working notes and scratch analysis
 NOTES.md
